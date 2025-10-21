@@ -95,6 +95,14 @@ num_attention_heads = st.sidebar.number_input(
     key="num_attention_heads",
     help="Number of attention heads in the model (given by the model card).",
 )
+mlp_layer_size = st.sidebar.number_input(
+    "MLP Layer Size",
+    min_value=0,
+    step=1,
+    value=None,
+    key="mlp_layer_size",
+    help="Size of the MLP layer (usually 4x the hidden size).",
+)
 
 
 # ----------------- Main Screen UI ----------------- #
@@ -117,6 +125,7 @@ inference_memory = calculate_inference_memory(
     hidden_size,
     num_hidden_layers,
     num_attention_heads,
+    mlp_layer_size,
 )
 
 inference.write(f"**Total Inference Memory**: {inference_memory['inference_memory']}")
@@ -136,6 +145,7 @@ training_memory = calculate_training_memory(
     num_attention_heads,
     optimizer,
     trainable_parameters,
+    mlp_layer_size,
 )
 
 training1.write(f"**Total Training Memory**: {training_memory['training_memory']}")

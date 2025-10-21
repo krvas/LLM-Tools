@@ -65,7 +65,7 @@ def get_kv_cache(
 @st.cache_data
 def get_activation_memory(
     batch_size, sequence_length, hidden_size, num_attention_heads, precision,
-    num_hidden_layers, mlp_multiple=4
+    num_hidden_layers, mlp_layer_size
 ):
     """
     Calculate the memory required for activations. It references this paper:
@@ -90,19 +90,19 @@ def get_activation_memory(
     I'm assuming this structure of the MLP:
     Linear layer, Activation function, Linear layer
     With the first linear layer transforming h dimensions into some higher
-    dimension mh and the second linear layer projecting it back.
+    dimension m and the second linear layer projecting it back.
     Then, the memory required is:
     1st Linear layer: sbhL
-    Activation: sbmhL
-    2nd Linear layer: sbmhL
+    Activation: sbmL
+    2nd Linear layer: sbmL
 
-    Total = (3 + 2a + 2m)sbhL + 3as^2bL
+    Total = (3 + 2a)sbhL + 3as^2bL + 2msbL
     """
     
     try:
         return (
             (
-                (3 + 2 * num_attention_heads + 2 * mlp_multiple)
+                (3 + 2 * num_attention_heads)
                 * sequence_length
                 * batch_size
                 * hidden_size
@@ -111,6 +111,12 @@ def get_activation_memory(
                 3
                 * num_attention_heads
                 * sequence_length ** 2
+                * batch_size
+                * num_hidden_layers
+            ) + (
+                2
+                * mlp_layer_size
+                * sequence_length
                 * batch_size
                 * num_hidden_layers
             )
@@ -147,6 +153,7 @@ def calculate_inference_memory(
     hidden_size,
     num_hidden_layers,
     num_attention_heads,
+    mlp_layer_size,
 ):
     """Calculate the total memory required for inference."""
     model_weights = get_model_weights(model_size, precision)
@@ -155,7 +162,7 @@ def calculate_inference_memory(
     )
     activation_memory = get_activation_memory(
         batch_size, sequence_length, hidden_size, num_attention_heads, precision,
-        num_hidden_layers
+        num_hidden_layers, mlp_layer_size
     )
     return {
         "model_weights": get_memory(model_weights),
@@ -176,12 +183,13 @@ def calculate_training_memory(
     num_attention_heads,
     optimizer,
     trainable_parameters,
+    mlp_layer_size
 ):
     """Calculate the total memory required for training."""
     model_weights = get_model_weights(model_size, precision)
     activation_memory = get_activation_memory(
         batch_size, sequence_length, hidden_size, num_attention_heads, precision,
-        num_hidden_layers
+        num_hidden_layers, mlp_layer_size
     )
     optimizer_memory = (
         get_optimizer_memory(model_size, optimizer) * trainable_parameters / 100
