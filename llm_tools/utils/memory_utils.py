@@ -1,4 +1,4 @@
-import streamlit as st
+from functools import lru_cache
 from llm_tools.config.memory_config import (
     DATA_TYPES,
     PARAMETERS,
@@ -6,9 +6,12 @@ from llm_tools.config.memory_config import (
     OPTIMIZERS,
 )
 
+# lightweight drop-in cache replacement for streamlit.cache_data
+cache_data = lru_cache(maxsize=None)
+
 
 # ----------------- Memory Functions ----------------- #
-@st.cache_data
+@cache_data
 def get_memory(*args):
     """Convert total memory from bytes to human-readable format."""
     total = 0
@@ -18,6 +21,7 @@ def get_memory(*args):
             total += arg
         else:
             warning = True
+
     # Convert bytes to human-readable format
     if total == 0:
         result = ""
@@ -35,7 +39,7 @@ def get_memory(*args):
     return result
 
 
-@st.cache_data
+@cache_data
 def get_model_weights(model_size, precision):
     """Calculate the memory required for model weights."""
     try:
@@ -44,7 +48,7 @@ def get_model_weights(model_size, precision):
         return 0
 
 
-@st.cache_data
+@cache_data
 def get_kv_cache(
     precision, batch_size, sequence_length, hidden_size, num_hidden_layers
 ):
@@ -62,7 +66,7 @@ def get_kv_cache(
         return 0
 
 
-@st.cache_data
+@cache_data
 def get_activation_memory(
     batch_size, sequence_length, hidden_size, num_attention_heads, precision,
     num_hidden_layers, mlp_layer_size
@@ -125,7 +129,7 @@ def get_activation_memory(
         return 0
 
 
-@st.cache_data
+@cache_data
 def get_optimizer_memory(model_size, optimizer):
     """Calculate the memory required for optimizer."""
     try:
@@ -134,7 +138,7 @@ def get_optimizer_memory(model_size, optimizer):
         return 0
 
 
-@st.cache_data
+@cache_data
 def get_gradient_memory(model_size, precision):
     """Calculate the memory required for gradients."""
     precision = "float32"
@@ -144,7 +148,7 @@ def get_gradient_memory(model_size, precision):
         return 0
 
 
-@st.cache_data
+@cache_data
 def calculate_inference_memory(
     model_size,
     precision,
@@ -172,7 +176,7 @@ def calculate_inference_memory(
     }
 
 
-@st.cache_data
+@cache_data
 def calculate_training_memory(
     model_size,
     precision,

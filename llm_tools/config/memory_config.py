@@ -1,6 +1,6 @@
-import streamlit as st
 import os
 import json
+from functools import lru_cache
 
 # Data type sizes in bytes
 DATA_TYPE_SIZES = {
@@ -32,7 +32,7 @@ PARAMETERS = {
 }
 
 
-@st.cache_data
+@lru_cache(maxsize=None)
 def load_predefined_models() -> dict:
     """Load model configurations from the 'predefined_models' folder."""
     models = {}
