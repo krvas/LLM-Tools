@@ -13,7 +13,7 @@ cache_data = lru_cache(maxsize=None)
 
 # ----------------- Memory Functions ----------------- #
 @cache_data
-def get_memory(*args):
+def get_memory(*args, in_int=False):
     """Convert total memory from bytes to human-readable format."""
     total = 0
     warning = False
@@ -22,6 +22,9 @@ def get_memory(*args):
             total += arg
         else:
             warning = True
+    
+    if in_int:
+        return total
 
     # Convert bytes to human-readable format
     if total == 0:
@@ -197,17 +200,16 @@ def calculate_training_memory(
         get_gradient_memory(model.model_size, model.precision) * trainable_parameters / 100
     )
 
-    parser = sum if in_int else get_memory
-
     return {
-        "model_weights": parser(model_weights),
-        "activation_memory": parser(activation_memory),
-        "optimizer_memory": parser(optimizer_memory),
-        "gradients_memory": parser(gradients_memory),
-        "training_memory": parser(
+        "model_weights": get_memory(model_weights, in_int=in_int),
+        "activation_memory": get_memory(activation_memory, in_int=in_int),
+        "optimizer_memory": get_memory(optimizer_memory, in_int=in_int),
+        "gradients_memory": get_memory(gradients_memory, in_int=in_int),
+        "training_memory": get_memory(
             model_weights,
             activation_memory,
             optimizer_memory,
             gradients_memory,
+            in_int=in_int,
         ),
     }
