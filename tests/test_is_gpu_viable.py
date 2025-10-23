@@ -24,7 +24,7 @@ def main():
             batch_size = 1
             # prefer model.max_sequence_length, fall back to 2048
             sequence_length = min(getattr(model, "max_sequence_length", getattr(model, "max_position_embeddings", 2048)), 2048)
-            trainable_parameters = 1.0
+            trainable_parameters = 100
 
             for gpu_name in gpus_available.keys():
                 note = ""
