@@ -187,7 +187,8 @@ def calculate_training_memory(
     num_attention_heads,
     optimizer,
     trainable_parameters,
-    mlp_layer_size
+    mlp_layer_size,
+    in_int=False
 ):
     """Calculate the total memory required for training."""
     model_weights = get_model_weights(model_size, precision)
@@ -202,12 +203,14 @@ def calculate_training_memory(
         get_gradient_memory(model_size, precision) * trainable_parameters / 100
     )
 
+    parser = sum if in_int else get_memory
+
     return {
-        "model_weights": get_memory(model_weights),
-        "activation_memory": get_memory(activation_memory),
-        "optimizer_memory": get_memory(optimizer_memory),
-        "gradients_memory": get_memory(gradients_memory),
-        "training_memory": get_memory(
+        "model_weights": parser(model_weights),
+        "activation_memory": parser(activation_memory),
+        "optimizer_memory": parser(optimizer_memory),
+        "gradients_memory": parser(gradients_memory),
+        "training_memory": parser(
             model_weights,
             activation_memory,
             optimizer_memory,
