@@ -153,31 +153,29 @@ def get_gradient_memory(model_size, precision):
 
 @cache_data
 def calculate_inference_memory(
-    model_size,
-    precision,
-    batch_size,
-    sequence_length,
-    hidden_size,
-    num_hidden_layers,
-    num_attention_heads,
-    mlp_layer_size,
+    model: Model,
+    batch_size: int,
+    sequence_length: int,
+    in_int: bool = False,
 ):
-    """Calculate the total memory required for inference."""
-    model_weights = get_model_weights(model_size, precision)
+    """Calculate the total memory required for inference using a Model object."""
+    model_weights = get_model_weights(model.model_size, model.precision)
     kv_cache = get_kv_cache(
-        precision, batch_size, sequence_length, hidden_size, num_hidden_layers
+        model.precision,
+        batch_size,
+        sequence_length,
+        model.hidden_size,
+        model.num_hidden_layers,
     )
-    activation_memory = get_activation_memory(
-        batch_size, sequence_length, hidden_size, num_attention_heads, precision,
-        num_hidden_layers, mlp_layer_size
-    )
+    activation_memory = get_activation_memory(batch_size, sequence_length, model)
     return {
-        "model_weights": get_memory(model_weights),
-        "kv_cache": get_memory(kv_cache),
-        "activation_memory": get_memory(activation_memory),
-        "inference_memory": get_memory(model_weights, kv_cache, activation_memory),
+        "model_weights": get_memory(model_weights, in_int=in_int),
+        "kv_cache": get_memory(kv_cache, in_int=in_int),
+        "activation_memory": get_memory(activation_memory, in_int=in_int),
+        "inference_memory": get_memory(
+            model_weights, kv_cache, activation_memory, in_int=in_int
+        ),
     }
-
 
 @cache_data
 def calculate_training_memory(
