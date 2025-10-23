@@ -45,6 +45,17 @@ class Model:
         self.num_attention_heads = num_attention_heads
         self.mlp_layer_size = intermediate_size
         self.max_sequence_length = max_position_embeddings
+    
+    def __repr__(self):
+        return json.dumps({
+            "1. model_size": self.model_size,
+            "2. precision": self.precision,
+            "3. hidden_size": self.hidden_size,
+            "4. num_hidden_layers": self.num_hidden_layers,
+            "5. num_attention_heads": self.num_attention_heads,
+            "6. mlp_layer_size": self.mlp_layer_size,
+            "7. max_sequence_length": self.max_sequence_length,
+        }, indent=2, sort_keys=True)
 
 @lru_cache(maxsize=None)
 def load_predefined_models() -> dict:
