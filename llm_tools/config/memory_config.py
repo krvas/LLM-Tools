@@ -29,8 +29,22 @@ PARAMETERS = {
     "num_hidden_layers": "num_hidden_layers",
     "num_attention_heads": "num_attention_heads",
     "num_key_value_heads": "num_key_value_heads",
+    "mlp_layer_size": "intermediate_size",
+    "max_sequence_length": "max_position_embeddings",
 }
 
+
+class Model:
+    def __init__(self, model_size, torch_dtype, hidden_size,
+                 num_hidden_layers, num_attention_heads,
+                 intermediate_size, max_position_embeddings, **kwargs):
+        self.model_size = model_size
+        self.precision = torch_dtype
+        self.hidden_size = hidden_size
+        self.num_hidden_layers = num_hidden_layers
+        self.num_attention_heads = num_attention_heads
+        self.mlp_layer_size = intermediate_size
+        self.max_sequence_length = max_position_embeddings
 
 @lru_cache(maxsize=None)
 def load_predefined_models() -> dict:
@@ -39,5 +53,8 @@ def load_predefined_models() -> dict:
     for model_file in os.listdir(os.path.join("llm_tools", "models")):
         if model_file.endswith(".json"):
             with open(os.path.join("llm_tools", "models", model_file), "r") as f:
-                models[model_file[:-5]] = json.load(f)
+                try:
+                    models[model_file[:-5]] = Model(**json.load(f))
+                except Exception as e:
+                    print(f"Error loading model from {model_file}: {e}")
     return models

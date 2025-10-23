@@ -4,6 +4,7 @@ from llm_tools.config.memory_config import (
     PARAMETERS,
     DATA_TYPE_SIZES,
     OPTIMIZERS,
+    Model
 )
 
 # lightweight drop-in cache replacement for streamlit.cache_data
@@ -68,8 +69,7 @@ def get_kv_cache(
 
 @cache_data
 def get_activation_memory(
-    batch_size, sequence_length, hidden_size, num_attention_heads, precision,
-    num_hidden_layers, mlp_layer_size
+    batch_size: int, sequence_length: int, model: Model
 ):
     """
     Calculate the memory required for activations. It references this paper:
@@ -106,25 +106,25 @@ def get_activation_memory(
     try:
         return (
             (
-                (3 + 2 * num_attention_heads)
+                (3 + 2 * model.num_attention_heads)
                 * sequence_length
                 * batch_size
-                * hidden_size
-                * num_hidden_layers
+                * model.hidden_size
+                * model.num_hidden_layers
             ) + (
                 3
-                * num_attention_heads
+                * model.num_attention_heads
                 * sequence_length ** 2
                 * batch_size
-                * num_hidden_layers
+                * model.num_hidden_layers
             ) + (
                 2
-                * mlp_layer_size
+                * model.mlp_layer_size
                 * sequence_length
                 * batch_size
-                * num_hidden_layers
+                * model.num_hidden_layers
             )
-        ) * DATA_TYPE_SIZES[precision]
+        ) * DATA_TYPE_SIZES[model.precision]
     except:
         return 0
 
@@ -178,29 +178,23 @@ def calculate_inference_memory(
 
 @cache_data
 def calculate_training_memory(
-    model_size,
-    precision,
-    batch_size,
-    sequence_length,
-    hidden_size,
-    num_hidden_layers,
-    num_attention_heads,
-    optimizer,
-    trainable_parameters,
-    mlp_layer_size,
-    in_int=False
+    model: Model,
+    batch_size: int,
+    sequence_length: int,
+    optimizer: str,
+    trainable_parameters: int,
+    in_int: bool = False
 ):
     """Calculate the total memory required for training."""
-    model_weights = get_model_weights(model_size, precision)
+    model_weights = get_model_weights(model.model_size, model.precision)
     activation_memory = get_activation_memory(
-        batch_size, sequence_length, hidden_size, num_attention_heads, precision,
-        num_hidden_layers, mlp_layer_size
+        batch_size, sequence_length, model
     )
     optimizer_memory = (
-        get_optimizer_memory(model_size, optimizer) * trainable_parameters / 100
+        get_optimizer_memory(model.model_size, optimizer) * trainable_parameters / 100
     )
     gradients_memory = (
-        get_gradient_memory(model_size, precision) * trainable_parameters / 100
+        get_gradient_memory(model.model_size, model.precision) * trainable_parameters / 100
     )
 
     parser = sum if in_int else get_memory
