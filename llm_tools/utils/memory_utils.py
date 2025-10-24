@@ -167,7 +167,8 @@ def calculate_inference_memory(
         model.hidden_size,
         model.num_hidden_layers,
     )
-    activation_memory = get_activation_memory(batch_size, sequence_length, model)
+    activation_memory = get_activation_memory(batch_size, sequence_length, model) / \
+        model.num_hidden_layers  # Only one layer's activations are stored at a time
     return {
         "model_weights": get_memory(model_weights, in_int=in_int),
         "kv_cache": get_memory(kv_cache, in_int=in_int),
